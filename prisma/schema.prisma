@@ -15,6 +15,8 @@ model Post {
     name      String
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+    clerkUser String
+    email     String
 
-    @@index([name])
+    @@index([name, clerkUser])
 }

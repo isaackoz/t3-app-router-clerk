@@ -12,6 +12,8 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { db } from "@/server/db";
+import { decodeJwt, type Session } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/nextjs";
 
 /**
  * 1. CONTEXT
@@ -23,6 +25,7 @@ import { db } from "@/server/db";
 
 interface CreateContextOptions {
   headers: Headers;
+  session: Session | null;
 }
 
 /**
@@ -39,6 +42,7 @@ export const createInnerTRPCContext = (opts: CreateContextOptions) => {
   return {
     headers: opts.headers,
     db,
+    session: opts.session,
   };
 };
 
@@ -48,11 +52,32 @@ export const createInnerTRPCContext = (opts: CreateContextOptions) => {
  *
  * @see https://trpc.io/docs/context
  */
-export const createTRPCContext = (opts: { req: NextRequest }) => {
-  // Fetch stuff that depends on the request
+export const createTRPCContext = async (opts: { req: NextRequest }) => {
+  const sessionToken = opts.req.cookies.get("__session")?.value ?? "";
 
+  try {
+    // Decode the JWT to get the session ID
+    const decodedJwt = decodeJwt(sessionToken);
+
+    // Verify the session with Clerk to get the session object
+    const verifiedSession = await clerkClient.sessions.verifySession(
+      decodedJwt.payload.sid,
+      sessionToken,
+    );
+
+    // If the session is valid, return a context with the session
+    return createInnerTRPCContext({
+      headers: opts.req.headers,
+      session: verifiedSession,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+
+  // If the session is invalid, return a context with no session
   return createInnerTRPCContext({
     headers: opts.req.headers,
+    session: null,
   });
 };
 
@@ -78,6 +103,18 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
   },
 });
 
+const isAuthed = t.middleware(async ({ ctx, next }) => {
+  if (!ctx.session) {
+    throw new Error("UNAUTHORIZED");
+  }
+
+  return next({
+    ctx: {
+      session: ctx.session,
+    },
+  });
+});
+
 /**
  * 3. ROUTER & PROCEDURE (THE IMPORTANT BIT)
  *
@@ -100,3 +137,5 @@ export const createTRPCRouter = t.router;
  * are logged in.
  */
 export const publicProcedure = t.procedure;
+
+export const protectedProcedure = t.procedure.use(isAuthed);

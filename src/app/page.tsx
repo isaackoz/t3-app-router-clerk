@@ -1,10 +1,17 @@
-import Link from "next/link";
-
 import { CreatePost } from "@/app/_components/create-post";
 import { api } from "@/trpc/server";
+import {
+  SignIn,
+  SignOutButton,
+  SignedIn,
+  SignedOut,
+  currentUser,
+} from "@clerk/nextjs";
+import Link from "next/link";
 
 export default async function Home() {
   const hello = await api.post.hello.query({ text: "from tRPC" });
+  const user = await currentUser();
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
@@ -12,29 +19,36 @@ export default async function Home() {
         <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
           Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
         </h1>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-          <Link
-            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-            href="https://create.t3.gg/en/usage/first-steps"
-            target="_blank"
-          >
-            <h3 className="text-2xl font-bold">First Steps →</h3>
-            <div className="text-lg">
-              Just the basics - Everything you need to know to set up your
-              database and authentication.
+        <p>Next 14 App Router + tRPC + Clerk demo</p>
+        <div>
+          <SignedOut>
+            <span className="font-red-500">You are not signed in.</span>
+            <SignIn afterSignInUrl={"/"} />
+          </SignedOut>
+          <SignedIn>
+            <SignOutButton>Sign out &rarr;</SignOutButton>
+            <div className="flex flex-col">
+              <span className="text-green-500">You are signed in</span>{" "}
+              <ul>
+                <li>
+                  {" "}
+                  <span className="font-bold text-gray-400">
+                    Username:
+                  </span>{" "}
+                  {user?.username ?? "No username"}
+                </li>
+                <li>
+                  {" "}
+                  <span className="font-bold text-gray-400">Email:</span>{" "}
+                  {user?.emailAddresses[0]?.emailAddress}
+                </li>
+                <li>
+                  <span className="font-bold text-gray-400">Full name:</span>{" "}
+                  {`${user?.firstName} ${user?.lastName}`}
+                </li>
+              </ul>
             </div>
-          </Link>
-          <Link
-            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-            href="https://create.t3.gg/en/introduction"
-            target="_blank"
-          >
-            <h3 className="text-2xl font-bold">Documentation →</h3>
-            <div className="text-lg">
-              Learn more about Create T3 App, the libraries it uses, and how to
-              deploy it.
-            </div>
-          </Link>
+          </SignedIn>
         </div>
         <div className="flex flex-col items-center gap-2">
           <p className="text-2xl text-white">
@@ -49,17 +63,31 @@ export default async function Home() {
 }
 
 async function CrudShowcase() {
-  const latestPost = await api.post.getLatest.query();
+  const latestPost = await api.post.getAllPosts.query();
 
   return (
     <div className="w-full max-w-xs">
-      {latestPost ? (
-        <p className="truncate">Your most recent post: {latestPost.name}</p>
-      ) : (
-        <p>You have no posts yet.</p>
-      )}
-
+      {/* Try posting when not logged in. You will see protected procedure gives an UNAUTHORIZED error. 
+       Ideally you wouldn't even show the button if the user is not logged in, but this is just a demo to show 
+       that tRPC protectedProcedures work.
+      */}
       <CreatePost />
+      <div className="mt-6 flex flex-col">
+        <ul className="space-y-2">
+          {latestPost.map((post, index) => (
+            <li key={index} className="border border-gray-400">
+              <p className="text-sm">
+                {`Posted by `}
+                <span className="text-blue-400">
+                  <Link href={`/u/${post.clerkUser}`}>{post.email}</Link>
+                </span>{" "}
+                {`on ${post.createdAt.toLocaleDateString()}`}
+              </p>
+              <p className="text-xl text-pink-500">{post.name}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
