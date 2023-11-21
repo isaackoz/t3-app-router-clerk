@@ -5,9 +5,20 @@ generator client {
     provider = "prisma-client-js"
 }
 
+generator zod {
+  provider              = "zod-prisma"
+  output                = "./zod"
+  relationModel         = true
+  modelCase             = "camelCase"
+  modelSuffix           = "Schema"
+  useDecimalJs          = true
+  prismaJsonNullability = true
+}
+
 datasource db {
-    provider = "sqlite"
-    url      = env("DATABASE_URL")
+  provider     = "mysql"
+  relationMode = "prisma"
+  url          = env("DATABASE_URL")
 }
 
 model Post {
