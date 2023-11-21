@@ -26,7 +26,7 @@ export const postRouter = createTRPCRouter({
       return ctx.db.post.create({
         data: {
           name: input.name,
-          clerkUser: ctx.session.userId,
+          user_id: ctx.session.userId,
           email: user?.emailAddresses[0]?.emailAddress ?? "",
         },
       });
@@ -37,7 +37,7 @@ export const postRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       return ctx.db.post.findMany({
         where: {
-          clerkUser: input.userId,
+          user_id: input.userId,
         },
         orderBy: { createdAt: "desc" },
       });

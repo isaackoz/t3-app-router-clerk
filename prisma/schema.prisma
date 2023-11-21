@@ -23,11 +23,30 @@ datasource db {
 
 model Post {
     id        Int      @id @default(autoincrement())
+    
     name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    clerkUser String
+    user_id String
     email     String
 
-    @@index([name, clerkUser])
+    User user @relation(fields: [user_id], references: [id])
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    @@index([name, user_id])
 }
+
+model user {
+  id        String @id @unique
+  email     String @unique
+  firstName String
+  lastName  String
+  profileImageUrl String?
+
+  Posts Post[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([id])
+}
+
+

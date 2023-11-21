@@ -79,7 +79,7 @@ async function CrudShowcase() {
               <p className="text-sm">
                 {`Posted by `}
                 <span className="text-blue-400">
-                  <Link href={`/u/${post.clerkUser}`}>{post.email}</Link>
+                  <Link href={`/u/${post.user_id}`}>{post.email}</Link>
                 </span>{" "}
                 {`on ${post.createdAt.toLocaleDateString()}`}
               </p>
