@@ -25,20 +25,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >
-        <ClerkProvider>
-          <body className={`font-sans ${inter.variable}`}>
+      <body className={`font-sans ${inter.variable}`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ClerkProvider>
             <TRPCReactProvider cookies={cookies().toString()}>
               {children}
             </TRPCReactProvider>
-          </body>
-        </ClerkProvider>
-      </ThemeProvider>
+          </ClerkProvider>
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
