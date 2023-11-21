@@ -27,6 +27,7 @@
     "react-dom": "18.2.0",
     "superjson": "^1.13.1",
     "svix": "^1.14.0",
+    "tailwind-merge": "^2.0.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.22.4",
     "zod-prisma": "^0.5.4"
