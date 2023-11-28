@@ -5,18 +5,48 @@ generator client {
     provider = "prisma-client-js"
 }
 
+generator zod {
+  provider              = "zod-prisma"
+  output                = "./zod"
+  relationModel         = true
+  modelCase             = "camelCase"
+  modelSuffix           = "Schema"
+  useDecimalJs          = true
+  prismaJsonNullability = true
+}
+
 datasource db {
-    provider = "sqlite"
-    url      = env("DATABASE_URL")
+  provider     = "mysql"
+  relationMode = "prisma"
+  url          = env("DATABASE_URL")
 }
 
 model Post {
     id        Int      @id @default(autoincrement())
+    
     name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    clerkUser String
+    user_id String
     email     String
 
-    @@index([name, clerkUser])
+    User user @relation(fields: [user_id], references: [id])
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    @@index([name, user_id])
 }
+
+model user {
+  id        String @id @unique
+  email     String @unique
+  firstName String
+  lastName  String
+  profileImageUrl String?
+
+  Posts Post[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([id])
+}
+
+
