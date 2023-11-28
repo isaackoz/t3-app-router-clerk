@@ -83,11 +83,7 @@ export default function Home() {
 }
 
 async function CrudShowcase() {
-  const { data: latestPost, isLoading } = api.post.getAllPosts.useQuery();
-
-  if (isLoading || !latestPost) {
-    return <div>Loading Content...</div>;
-  }
+  const latestPost = api.post.getAllPosts.useQuery();
 
   return (
     <div className="w-full max-w-xs">
